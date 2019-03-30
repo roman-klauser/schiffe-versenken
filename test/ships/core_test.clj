@@ -99,21 +99,10 @@
 (deftest should-put-ship-vertically-invalid
   (is (= (put-ship-vertically empty-board
                               (->Ship 3)
-                              (->Coordinates 3 7))
-         '(
-            (nil nil nil nil nil nil nil nil nil nil)
-            (nil nil nil nil nil nil nil nil nil nil)
-            (nil nil nil nil nil nil nil nil nil nil)
-            (nil nil nil nil nil nil nil nil nil nil)
-            (nil nil nil nil nil nil nil nil nil nil)
-            (nil nil nil "ship" nil nil nil nil nil nil)
-            (nil nil nil "ship" nil nil nil nil nil nil)
-            (nil nil nil nil nil nil nil nil nil nil)
-            (nil nil nil nil nil nil nil nil nil nil)
-            (nil nil nil nil nil nil nil nil nil nil)
-            ))))
+                              (->Coordinates 3 8))
+         nil)))
 
-(deftest should-place-a-ship-horizonally
+(deftest should-place-a-ship-horizontally
   (let [ship (->Ship 3)
         coordinate (->Coordinates 1 0)]
     (is (= (set-ship empty-board ship coordinate :horizontal)
@@ -130,7 +119,7 @@
               (nil nil nil nil nil nil nil nil nil nil)
               )))))
 
-(deftest should-place-a-ship-horizonally
+(deftest should-place-a-ship-vertically
   (let [ship (->Ship 4)
         coordinate (->Coordinates 1 0)]
     (is (= (set-ship empty-board ship coordinate :vertical)

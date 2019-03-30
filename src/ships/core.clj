@@ -9,8 +9,8 @@
 (defrecord Ship [size])
 (defrecord Coordinates [x y])
 
-(defn less-or-zero [x] (if (< x 0) 0 x))
-(defn less-or-max [x] (if (> x board-size) board-size x))
+(defn more-or-zero [c] (if (< c 0) 0 c))
+(defn less-or-max [c] (if (>= c board-size) (- board-size 1) c))
 
 (defn set-ship
   [board ship coordinate alignment]
@@ -29,6 +29,10 @@
   [ship coordinates]
   (<= (+ (:x coordinates) (:size ship)) board-size))
 
+(defn valid-vertical-placement?
+  [ship coordinates]
+  (<= (+ (:y coordinates) (:size ship)) board-size))
+
 (defn put-ship-horizontally
   [board ship coordinates]
   (when (valid-horizontal-placement? ship coordinates)
@@ -41,12 +45,13 @@
 
 (defn put-ship-vertically
   [board ship coordinates]
-  (let [start (+ (:x coordinates) (* (:y coordinates) board-size))
-        end (+ start (* (:size ship) board-size))
-        updated (reduce
-                  #(assoc %1 %2 "ship")
-                  (vec (flatten board)) (range start end board-size))]
-    (partition board-size updated)))
+  (when (valid-vertical-placement? ship coordinates)
+    (let [start (+ (:x coordinates) (* (:y coordinates) board-size))
+          end (+ start (* (:size ship) board-size))
+          updated (reduce
+                    #(assoc %1 %2 "ship")
+                    (vec (flatten board)) (range start end board-size))]
+      (partition board-size updated))))
 
 (defn get-sector
   [board ship coordinate alignment]
@@ -54,29 +59,34 @@
 
 (defn left-top-corner
   [coordinate]
-  (let [x (- (:x coordinate) 1)
-        y (- (:y coordinate) 1)]
-    (Coordinates. (less-or-zero x) (less-or-zero y))))
+  (->Coordinates (more-or-zero (- (:x coordinate) 1))
+                 (more-or-zero (- (:y coordinate) 1))))
 
 (defn right-bottom-corner
-  [coordinate ship alignment]
+  [ship coordinate alignment]
   (cond
-    (= alignment :horizontal) (Coordinates. (+ (:x coordinate) (:size ship)) (+ (:y coordinate) 1))
-    (= alignment :vertical) (Coordinates. (+ (:x coordinate) 1) (+ (:y coordinate) 1 (:size ship)))))
+    (= alignment :horizontal)
+      (->Coordinates (less-or-max (+ (:x coordinate) (:size ship)))
+                     (less-or-max (+ (:y coordinate) 1)))
+    (= alignment :vertical)
+      (->Coordinates (less-or-max (+ (:x coordinate) 1))
+                     (less-or-max (+ (:y coordinate)  (:size ship))))))
 
+(defn foo
+  [ship coordinate alignment]
+  [(left-top-corner coordinate)
+   (right-bottom-corner ship coordinate alignment)])
 
-; (0,1) (2,3)
-
-; 0 0 0 0 0 0 0 0 0 0
-; x 0 0 0 0 0 0 0 0 0
-; 0 0 0 0 0 0 0 0 0 0
-; 0 0 x 0 0 0 0 0 0 0
 ; 0 0 0 0 0 0 0 0 0 0
 ; 0 0 0 0 0 0 0 0 0 0
 ; 0 0 0 0 0 0 0 0 0 0
 ; 0 0 0 0 0 0 0 0 0 0
 ; 0 0 0 0 0 0 0 0 0 0
 ; 0 0 0 0 0 0 0 0 0 0
+; 0 0 0 0 0 0 0 0 x 0
+; 0 0 0 0 0 0 0 0 x 0
+; 0 0 0 0 0 0 0 0 x 0
+; 0 0 0 0 0 0 0 0 x 0
 (defn fire
   [board row-idx col-idx]
   (get-in (vec board) [row-idx col-idx]))
